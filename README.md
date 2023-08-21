@@ -79,11 +79,12 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 ### 安装PHP
 1. 安装依赖包
 ```
-[root@ip-... ~]# yum install -y libpng-devel libjpeg-devel bison bison-devel zlib-devel libmcrypt-devel mcrypt mhash-devel \
-                     openssl-devel libxml2-devel libcurl-devel bzip2-devel readline-devel libedit-devel sqlite-devel \                               jemalloc jemalloc-devel openldap-devel oniguruma-devel
+[root@ip-... ~]# yum install -y libpng-devel libjpeg-devel bison bison-devel zlib-devel \
+                     openssl-devel libxml2-devel libcurl-devel bzip2-devel readline-devel libedit-devel \
+                     sqlite-devel jemalloc jemalloc-devel openldap-devel oniguruma-devel
 ```
 > ***注意：***
-> libmcrypt-devel mcrypt mhash-devel are deprecated
+> libmcrypt-devel mcrypt mhash-devel are deprecated, so ignored
 2. 下载PHP并解压安装
 ```
 [root@ip-... ~]# cd /usr/local/src/
@@ -137,6 +138,58 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 > ***注意:***
 > configure: WARNING: unrecognized options: --enable-inline-optimization, --with-mysql, --with-gd, --with-jpeg-dir, --with-png-dir, --with-mcrypt, --with-libxml-dir, --enable-zip
 
+3. 修改Apache配置文件并重启Apache
+```
+# 在DirectoryIndex后面添加：index.php
+[root@ip-... php-8.2.9]# grep "DirectoryIndex"  /usr/local/httpd/conf/httpd.conf
+# DirectoryIndex: sets the file that Apache will serve if a directory
+   DirectoryIndex index.html index.php
+# 在AddType application/x-gzip .gz .tgz后面添加：AddType application/x-httpd-php .php
+[root@ip-... php-8.2.9]# grep -A 2 'AddType application/x-gzip .gz' /usr/local/httpd/conf/httpd.conf
+    AddType application/x-gzip .gz .tgz
+    AddType application/x-httpd-php .php
+# 重启Apache
+[root@ip-... php-8.2.9]# apachectl stop
+[root@ip-... php-8.2.9]# apachectl
+```
+4. index.php文件访问测试
+```
+[root@ip-... php-8.2.9]# cat >/usr/local/httpd/htdocs/index.php<<EOF
+<?php
+   phpinfo();
+?>
+EOF
+```
+### Enable HTTPS
+1. Enable TLS on the server
+```
+yum install openssl mod_ssl
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/pki/tls/private/apache-selfsigned.key -out
+        \ /etc/pki/tls/certs/apache-selfsigned.crt
+```
+2. 在httpd.conf文件中添加Listen 443和VirtualHost
+```
+[root@ip-... php-8.2.9]# grep Listen /usr/local/httpd/conf/httpd.conf
+#Listen 12.34.56.78:80
+Listen 80
+# 在后面添加Listen 443
+[root@ip-... php-8.2.9]# grep Listen /usr/local/httpd/conf/httpd.conf
+#Listen 12.34.56.78:80
+Listen 80
+Listen 443
+# uncomment LoadModule ssl_module modules/mod_ssl.so
+# 添加VirtualHost
+# <VirtualHost *:443>
+#     DocumentRoot "/path/to/your/documentroot"
+#     ServerName 127.0.0.1:443
+#     SSLEngine on
+#     SSLCertificateFile "/path/to/your/certificatefile.crt"
+#     SSLCertificateKeyFile "/path/to/your/privatekeyfile.key"
+# </VirtualHost>
+[root@ip-... php-8.2.9]# apachectl configtest
+[root@ip-... php-8.2.9]# apachectl restart
+```
+> ***注意：*** 因为使用的是self-signed certificate，所以即使开启SSL/TSL，https连接依然会显示为"not secured", to solve this, we could obtain a certificate from a recognized CA and make sure the domain name matchs with the certificate
 ### Prerequisites
 - Web Server: Apache Httpd :white_check_mark:
 - GraphViz 
