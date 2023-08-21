@@ -4,7 +4,7 @@
 # ssh -i yourec2key.pem ec2-user@public_ip_addr
 
 # 安装Apache
-# sudo -i
+sudo -i
 yum install -y apr-devel apr-util-devel openssl-devel libevent-devel pcre-devel gcc
 cd /usr/local/src/
 wget https://dlcdn.apache.org/httpd/httpd-2.4.57.tar.gz
@@ -33,9 +33,9 @@ ps aux|grep httpd
 netstat -nlutp|grep httpd
 
 # 安装PHP
-cd ~
-yum install -y libpng-devel libjpeg-devel bison bison-devel zlib-devel libmcrypt-devel mcrypt mhash-devel \
-openssl-devel libxml2-devel libcurl-devel bzip2-devel readline-devel libedit-devel sqlite-devel                                \ jemalloc jemalloc-devel openldap-devel oniguruma-devel
+cd
+yum install -y libpng-devel libjpeg-devel bison bison-devel zlib-devel openssl-devel libxml2-devel libcurl-devel \
+bzip2-devel readline-devel libedit-devel sqlite-devel jemalloc jemalloc-devel openldap-devel oniguruma-devel
 cd /usr/local/src/
 wget https://www.php.net/distributions/php-8.2.9.tar.gz
 tar xf php-8.2.9.tar.gz
