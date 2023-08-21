@@ -84,7 +84,6 @@ make && make install
 cp php.ini-production /usr/local/php/etc/php.ini
 cp /usr/local/php/etc/php-fpm.conf{.default,}
 # 修改Apache配置文件并重启Apache
-# TODO
 
 # 安装MySQL
 # TODO 
