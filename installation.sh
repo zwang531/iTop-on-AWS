@@ -84,6 +84,10 @@ make && make install
 cp php.ini-production /usr/local/php/etc/php.ini
 cp /usr/local/php/etc/php-fpm.conf{.default,}
 # 修改Apache配置文件并重启Apache
+# 在DirectoryIndex后面添加：index.php 
+# 在AddType application/x-gzip .gz .tgz后面添加：AddType application/x-httpd-php .php 
+# 重启Apache
+apachectl restart
 
 # 安装MySQL
 # TODO 
