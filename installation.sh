@@ -1,10 +1,11 @@
+#!/bin/bash
 # 安装环境aws linux 2023
 
 # ssh远程登陆EC2
 # ssh -i yourec2key.pem ec2-user@public_ip_addr
 
 # 安装Apache
-sudo su
+# sudo su
 yum install -y apr-devel apr-util-devel openssl-devel libevent-devel pcre-devel gcc
 cd /usr/local/src/
 wget https://dlcdn.apache.org/httpd/httpd-2.4.57.tar.gz
