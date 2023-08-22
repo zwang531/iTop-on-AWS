@@ -81,18 +81,18 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 ```
 [root@ip-... ~]# yum install -y libpng-devel libjpeg-devel bison bison-devel zlib-devel \
                      openssl-devel libxml2-devel libcurl-devel bzip2-devel readline-devel libedit-devel \
-                     sqlite-devel jemalloc jemalloc-devel openldap-devel oniguruma-devel
+                     sqlite-devel jemalloc jemalloc-devel openldap-devel oniguruma-devel libtool
 ```
 > ***注意：***
 > libmcrypt-devel mcrypt mhash-devel are deprecated, so ignored
 2. 下载PHP并解压安装
 ```
 [root@ip-... ~]# cd /usr/local/src/
-[root@ip-... src]# wget https://www.php.net/distributions/php-8.2.9.tar.gz
-[root@ip-... src]# tar xf php-8.2.9.tar.gz
-[root@ip-... src]# cd php-8.2.9/
-[root@ip-... php-8.2.9]# cp -frp /usr/lib64/libldap* /usr/lib/
-[root@ip-... php-8.2.9]# ./configure --prefix=/usr/local/php \
+[root@ip-... src]# wget https://www.php.net/distributions/php-8.1.22.tar.gz
+[root@ip-... src]# tar xf php-8.1.22.tar.gz
+[root@ip-... src]# cd php-8.1.22/
+[root@ip-... php-8.1]# cp -frp /usr/lib64/libldap* /usr/lib/
+[root@ip-... php-8.1]# ./configure --prefix=/usr/local/php \
 --with-config-file-path=/usr/local/php/etc \
 --with-apxs2=/usr/local/httpd/bin/apxs \
 --enable-inline-optimization \
@@ -129,11 +129,12 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 --enable-sysvsem \
 --enable-sysvshm \
 --enable-sockets
-[root@ip-... php-8.2.9]# sed -ri 's#(^EXTRA_LIBS =.*)#\1 -llber#gp' Makefile
-[root@ip-... php-8.2.9]# make && make install
+[root@ip-... php-8.1]# sed -ri 's#(^EXTRA_LIBS =.*)#\1 -llber#gp' Makefile
+[root@ip-... php-8.1]# make && make install
+[root@ip-... php-8.1]# libtool --finish /usr/local/src/php-8.1.22/libs
 # 拷贝配置文件
-[root@ip-... php-8.2.9]# cp php.ini-production /usr/local/php/etc/php.ini
-[root@ip-... php-8.2.9]# cp /usr/local/php/etc/php-fpm.conf{.default,}
+[root@ip-... php-8.1]# cp php.ini-production /usr/local/php/etc/php.ini
+[root@ip-... php-8.1]# cp /usr/local/php/etc/php-fpm.conf{.default,}
 ```
 > ***注意:***
 > configure: WARNING: unrecognized options: --enable-inline-optimization, --with-mysql, --with-gd, --with-jpeg-dir, --with-png-dir, --with-mcrypt, --with-libxml-dir, --enable-zip
@@ -141,25 +142,26 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 3. 修改Apache配置文件并重启Apache
 ```
 # 在DirectoryIndex后面添加：index.php
-[root@ip-... php-8.2.9]# grep "DirectoryIndex"  /usr/local/httpd/conf/httpd.conf
+[root@ip-... php-8.1]# grep "DirectoryIndex"  /usr/local/httpd/conf/httpd.conf
 # DirectoryIndex: sets the file that Apache will serve if a directory
    DirectoryIndex index.html index.php
 # 在AddType application/x-gzip .gz .tgz后面添加：AddType application/x-httpd-php .php
-[root@ip-... php-8.2.9]# grep -A 2 'AddType application/x-gzip .gz' /usr/local/httpd/conf/httpd.conf
+[root@ip-... php-8.1]# grep -A 2 'AddType application/x-gzip .gz' /usr/local/httpd/conf/httpd.conf
     AddType application/x-gzip .gz .tgz
     AddType application/x-httpd-php .php
 # 重启Apache
-[root@ip-... php-8.2.9]# apachectl stop
-[root@ip-... php-8.2.9]# apachectl
+[root@ip-... php-8.1]# apachectl stop
+[root@ip-... php-8.1]# apachectl
 ```
 4. index.php文件访问测试
 ```
-[root@ip-... php-8.2.9]# cat >/usr/local/httpd/htdocs/index.php<<EOF
+[root@ip-... php-8.1]# cat >/usr/local/httpd/htdocs/index.php<<EOF
 <?php
    phpinfo();
 ?>
 EOF
 ```
+
 ### Enable HTTPS and systemctl
 1. Enable TLS on the server
 ```
@@ -239,15 +241,22 @@ Listen 443
 ### 安装MySQL
 1. 安装依赖包
 ```
-[root@ip-... ~]# yum groupinstall "Development Tools" -y
 [root@ip-... ~]# yum install -y make gcc-c++ cmake bison-devel ncurses-devel libaio libaio-devel perl-Data-Dumper
+[root@ip-... ~]# yum groupinstall -y "Development Tools"
 ```
-2.下载mysql，解压安装
+2.下载mariadb，解压安装
 ```
 [root@ip-... ~]# cd /usr/local/src/
-[root@ip-... src]# wget https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.43.tar.gz
+[root@ip-... src]# wget https://mirrors.xtom.com/mariadb/mariadb-10.6.15/source/mariadb-10.6.15.tar.gz
+[root@ip-... src]# tar xf mariadb-10.6.15.tar.gz
 [root@ip-... src]# cd mysql-5.7.43
-[root@ip-... mysql-5.7.43]# cmake -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
+[root@ip-... mariadb-10.6.15]# dnf install java-11-amazon-corretto-devel
+[root@ip-... mariadb-10.6.15]# yum install boost-devel
+# locate the boost directory
+[root@ip-... mariadb-10.6.15]# sudo find / -name "boost" 2>/dev/null
+/usr/include/boost 
+...
+[root@ip-... mariadb-10.6.15]# cmake -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
                                   -DMYSQL_DATADIR=/usr/local/mysql/data \
                                   -DMYSQL_UNIX_ADDR=/usr/local/mysql/tmp/mysql.sock \
                                   -DEXTRA_CHARSETS=gbk,gb2312,utf8,ascii \
@@ -261,9 +270,8 @@ Listen 443
                                   -DENABLED_LOCAL_INFILE=1 \
                                   -DWITH_EMBEDDED_SERVER=1 \
                                   -DWITH_DEBUG=0 \
-                                  -DWITH_BOOST=/usr/local/src/mysql-5.7.43/boost \
-                                  -DDOWNLOAD_BOOST=1
-[root@ip-... mysql-5.7.43]# make && make install
+                                  -DBOOST_ROOT=/usr/include
+[root@ip-... mariadb-10.6.15]# make && make install
 ```
 
 ### Prerequisites
