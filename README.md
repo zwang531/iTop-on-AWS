@@ -164,8 +164,8 @@ EOF
 1. Enable TLS on the server
 ```
 [root@ip-... ~]# yum install openssl mod_ssl
-[root@ip-... ~]# openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/pki/tls/private/localhost.key -out
-                                  \ /etc/pki/tls/certs/localhost.crt
+[root@ip-... ~]# openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/pki/tls/private/localhost.key -out \     
+                         /etc/pki/tls/certs/localhost.crt
 ```
 2. 在httpd.conf文件中添加Listen 443和VirtualHost
 ```
@@ -186,6 +186,15 @@ Listen 443
 #     SSLCertificateFile "/path/to/your/certificatefile.crt"
 #     SSLCertificateKeyFile "/path/to/your/privatekeyfile.key"
 # </VirtualHost>
+# 如何寻找”/path/to/your/certificatefile.crt“和"/path/to/your/privatekeyfile.key"
+[root@ip-... ~]# find / -name "localhost.crt" 2>/dev/null
+/etc/pki/tls/certs/localhost.crt
+[root@ip-... ~]# find / -name "localhost.key" 2>/dev/null
+/etc/pki/tls/private/localhost.key
+# 如何寻找"/path/to/your/documentroot"
+[root@ip-... ~]# grep -ri "DocumentRoot" /usr/local/httpd/conf/
+/usr/local/httpd/htdocs
+# 检查conf的Syntax
 [root@ip-... ~]# apachectl configtest
 [root@ip-... ~]# apachectl restart
 ```
