@@ -181,13 +181,13 @@ Listen 80
 Listen 443
 # uncomment line "LoadModule ssl_module modules/mod_ssl.so"
 # 添加VirtualHost
-# <VirtualHost *:443>
-#     DocumentRoot "/path/to/your/documentroot"
-#     ServerName 127.0.0.1:443
-#     SSLEngine on
-#     SSLCertificateFile "/path/to/your/certificatefile.crt"
-#     SSLCertificateKeyFile "/path/to/your/privatekeyfile.key"
-# </VirtualHost>
+<VirtualHost *:443>
+    DocumentRoot "/path/to/your/documentroot"
+    ServerName 127.0.0.1:443
+    SSLEngine on
+    SSLCertificateFile "/path/to/your/certificatefile.crt"
+    SSLCertificateKeyFile "/path/to/your/privatekeyfile.key"
+</VirtualHost>
 # 如何寻找”/path/to/your/certificatefile.crt“和"/path/to/your/privatekeyfile.key"
 [root@ip-... ~]# find / -name "localhost.crt" 2>/dev/null
 /etc/pki/tls/certs/localhost.crt
@@ -222,13 +222,13 @@ Listen 443
 # Override systemd service
 [root@ip-... ~]# systemctl edit httpd
 # add the following to httpd.service.d
-# [Service]
-# ExecStart=
-# ExecStart=/usr/local/httpd/bin/apachectl start
-# ExecReload=
-# ExecReload=/usr/local/httpd/bin/apachectl graceful
-# ExecStop=
-# ExecStop=/usr/local/httpd/bin/apachectl stop
+[Service]
+ExecStart=
+ExecStart=/usr/local/httpd/bin/apachectl start
+ExecReload=
+ExecReload=/usr/local/httpd/bin/apachectl graceful
+ExecStop=
+ExecStop=/usr/local/httpd/bin/apachectl stop
 [root@ip-... ~]# systemctl daemon-reload
 [root@ip-... ~]# systemctl restart httpd
 # Ensure systemctl starts on boot
