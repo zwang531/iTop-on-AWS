@@ -160,12 +160,12 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 ?>
 EOF
 ```
-### Enable HTTPS
+### Enable HTTPS and systemctl
 1. Enable TLS on the server
 ```
 yum install openssl mod_ssl
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/pki/tls/private/apache-selfsigned.key -out
-        \ /etc/pki/tls/certs/apache-selfsigned.crt
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/pki/tls/private/localhost.key -out
+        \ /etc/pki/tls/certs/localhost.crt
 ```
 2. 在httpd.conf文件中添加Listen 443和VirtualHost
 ```
@@ -177,7 +177,7 @@ Listen 80
 #Listen 12.34.56.78:80
 Listen 80
 Listen 443
-# uncomment LoadModule ssl_module modules/mod_ssl.so
+# uncomment line "LoadModule ssl_module modules/mod_ssl.so"
 # 添加VirtualHost
 # <VirtualHost *:443>
 #     DocumentRoot "/path/to/your/documentroot"
@@ -189,7 +189,74 @@ Listen 443
 [root@ip-... php-8.2.9]# apachectl configtest
 [root@ip-... php-8.2.9]# apachectl restart
 ```
-> ***注意：*** 因为使用的是self-signed certificate，所以即使开启SSL/TSL，https连接依然会显示为"not secured", to solve this, we could obtain a certificate from a recognized CA and make sure the domain name matchs with the certificate
+3. 创建httpd.service文件，因为Apache是从tar文件被安装的，所以httpd.service没有自动创建
+```
+# locate apachectl
+[root@ip-... php-8.2.9]# which apachectl
+/usr/local/httpd/bin/apachectl
+# create /usr/lib/systemd/system/httpd.service
+[root@ip-... php-8.2.9]# echo "[Unit]" > /usr/lib/systemd/system/httpd.service
+[root@ip-... php-8.2.9]# echo "Description=The Apache HTTP Server" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... php-8.2.9]# echo "After=network.target remote-fs.target nss-lookup.target" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... php-8.2.9]# echo "" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... php-8.2.9]# echo "[Service]" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... php-8.2.9]# echo "Type=forking" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... php-8.2.9]# echo "ExecStart=/usr/local/httpd/bin/apachectl start" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... php-8.2.9]# echo "ExecReload=/usr/local/httpd/bin/apachectl graceful" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... php-8.2.9]# echo "ExecStop=/usr/local/httpd/bin/apachectl stop" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... php-8.2.9]# echo "PrivateTmp=true" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... php-8.2.9]# echo "" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... php-8.2.9]# echo "[Install]" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... php-8.2.9]# echo "WantedBy=multi-user.target" >> /usr/lib/systemd/system/httpd.service
+# Override systemd service
+[root@ip-... php-8.2.9]# systemctl edit httpd
+# add the following to httpd.service.d
+# [Service]
+# ExecStart=
+# ExecStart=/usr/local/httpd/bin/apachectl start
+# ExecReload=
+# ExecReload=/usr/local/httpd/bin/apachectl graceful
+# ExecStop=
+# ExecStop=/usr/local/httpd/bin/apachectl stop
+[root@ip-... php-8.2.9]# systemctl daemon-reload
+[root@ip-... php-8.2.9]# systemctl restart httpd
+# Ensure systemctl starts on boot
+[root@ip-... php-8.2.9]# systemctl enable httpd
+```
+> ***注意：***
+> 1. 确保certificate的名称为localhost, for development use.
+> 2. 因为使用的是self-signed certificate，所以即使开启SSL/TSL，https连接依然会显示为"not secured". This could be solved with a certificate from a recognized CA and make sure the domain name matchs with the certificate.
+
+### 安装MySQL
+1. 安装依赖包
+```
+[root@ip-... ~]# yum groupinstall "Development Tools" -y
+[root@ip-... ~]# yum install -y make gcc-c++ cmake bison-devel ncurses-devel libaio libaio-devel perl-Data-Dumper
+```
+2.下载mysql，解压安装
+```
+[root@ip-... ~]# cd /usr/local/src/
+[root@ip-... src]# wget https://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.43.tar.gz
+[root@ip-... src]# cd mysql-5.7.43
+[root@ip-... mysql-5.7.43]# cmake -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
+                                  -DMYSQL_DATADIR=/usr/local/mysql/data \
+                                  -DMYSQL_UNIX_ADDR=/usr/local/mysql/tmp/mysql.sock \
+                                  -DEXTRA_CHARSETS=gbk,gb2312,utf8,ascii \
+                                  -DENABLED_LOCAL_INFILE=ON \
+                                  -DWITH_INNOBASE_STORAGE_ENGINE=1 \
+                                  -DWITH_FEDERATED_STORAGE_ENGINE=1 \
+                                  -DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
+                                  -DWITHOUT_EXAMPLE_STORAGE_ENGINE=1 \
+                                  -DWITH_FAST_MUTEXES=1 \
+                                  -DWITH_ZLIB=bundled \
+                                  -DENABLED_LOCAL_INFILE=1 \
+                                  -DWITH_EMBEDDED_SERVER=1 \
+                                  -DWITH_DEBUG=0 \
+                                  -DWITH_BOOST=/usr/local/src/mysql-5.7.43/boost \
+                                  -DDOWNLOAD_BOOST=1
+[root@ip-... mysql-5.7.43]# make && make install
+```
+
 ### Prerequisites
 - Web Server: Apache Httpd :white_check_mark:
 - GraphViz 
