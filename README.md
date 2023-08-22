@@ -4,8 +4,8 @@ Configure LAMP on EC2 and install iTop ITSM
 ### 安装环境
 在Amazon Linux环境下部署LAMP，相关软件版本如下：
 - httpd-2.4.57
-- php-8.2.9
-- ...
+- php-8.1.22
+- mysql-8.0.34
   
 
 ### ssh远程登陆EC2
@@ -91,8 +91,8 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 [root@ip-... src]# wget https://www.php.net/distributions/php-8.1.22.tar.gz
 [root@ip-... src]# tar xf php-8.1.22.tar.gz
 [root@ip-... src]# cd php-8.1.22/
-[root@ip-... php-8.1]# cp -frp /usr/lib64/libldap* /usr/lib/
-[root@ip-... php-8.1]# ./configure --prefix=/usr/local/php \
+[root@ip-... php-8.1.22]# cp -frp /usr/lib64/libldap* /usr/lib/
+[root@ip-... php-8.1.22]# ./configure --prefix=/usr/local/php \
 --with-config-file-path=/usr/local/php/etc \
 --with-apxs2=/usr/local/httpd/bin/apxs \
 --enable-inline-optimization \
@@ -129,12 +129,12 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 --enable-sysvsem \
 --enable-sysvshm \
 --enable-sockets
-[root@ip-... php-8.1]# sed -ri 's#(^EXTRA_LIBS =.*)#\1 -llber#gp' Makefile
-[root@ip-... php-8.1]# make && make install
-[root@ip-... php-8.1]# libtool --finish /usr/local/src/php-8.1.22/libs
+[root@ip-... php-8.1.22]# sed -ri 's#(^EXTRA_LIBS =.*)#\1 -llber#gp' Makefile
+[root@ip-... php-8.1.22]# make && make install
+[root@ip-... php-8.1.22]# libtool --finish /usr/local/src/php-8.1.22/libs
 # 拷贝配置文件
-[root@ip-... php-8.1]# cp php.ini-production /usr/local/php/etc/php.ini
-[root@ip-... php-8.1]# cp /usr/local/php/etc/php-fpm.conf{.default,}
+[root@ip-... php-8.1.22]# cp php.ini-production /usr/local/php/etc/php.ini
+[root@ip-... php-8.1.22]# cp /usr/local/php/etc/php-fpm.conf{.default,}
 ```
 > ***注意:***
 > configure: WARNING: unrecognized options: --enable-inline-optimization, --with-mysql, --with-gd, --with-jpeg-dir, --with-png-dir, --with-mcrypt, --with-libxml-dir, --enable-zip
@@ -142,20 +142,20 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 3. 修改Apache配置文件并重启Apache
 ```
 # 在DirectoryIndex后面添加：index.php
-[root@ip-... php-8.1]# grep "DirectoryIndex"  /usr/local/httpd/conf/httpd.conf
+[root@ip-... php-8.1.22]# grep "DirectoryIndex"  /usr/local/httpd/conf/httpd.conf
 # DirectoryIndex: sets the file that Apache will serve if a directory
    DirectoryIndex index.html index.php
 # 在AddType application/x-gzip .gz .tgz后面添加：AddType application/x-httpd-php .php
-[root@ip-... php-8.1]# grep -A 2 'AddType application/x-gzip .gz' /usr/local/httpd/conf/httpd.conf
+[root@ip-... php-8.1.22]# grep -A 2 'AddType application/x-gzip .gz' /usr/local/httpd/conf/httpd.conf
     AddType application/x-gzip .gz .tgz
     AddType application/x-httpd-php .php
 # 重启Apache
-[root@ip-... php-8.1]# apachectl stop
-[root@ip-... php-8.1]# apachectl
+[root@ip-... php-8.1.22]# apachectl stop
+[root@ip-... php-8.1.22]# apachectl
 ```
 4. index.php文件访问测试
 ```
-[root@ip-... php-8.1]# cat >/usr/local/httpd/htdocs/index.php<<EOF
+[root@ip-... php-8.1.22]# cat >/usr/local/httpd/htdocs/index.php<<EOF
 <?php
    phpinfo();
 ?>
@@ -241,37 +241,72 @@ Listen 443
 ### 安装MySQL
 1. 安装依赖包
 ```
-[root@ip-... ~]# yum install -y make gcc-c++ cmake bison-devel ncurses-devel libaio libaio-devel perl-Data-Dumper
+[root@ip-... ~]# yum install -y make gcc-c++ cmake bison-devel ncurses-devel libaio libaio-devel perl-Data-Dumper libtirpc libtirpc-devel rpcgen
 [root@ip-... ~]# yum groupinstall -y "Development Tools"
 ```
-2.下载mariadb，解压安装
+2.下载mysql，解压安装
 ```
 [root@ip-... ~]# cd /usr/local/src/
-[root@ip-... src]# wget https://mirrors.xtom.com/mariadb/mariadb-10.6.15/source/mariadb-10.6.15.tar.gz
-[root@ip-... src]# tar xf mariadb-10.6.15.tar.gz
-[root@ip-... src]# cd mysql-5.7.43
-[root@ip-... mariadb-10.6.15]# dnf install java-11-amazon-corretto-devel
-[root@ip-... mariadb-10.6.15]# yum install boost-devel
-# locate the boost directory
-[root@ip-... mariadb-10.6.15]# sudo find / -name "boost" 2>/dev/null
-/usr/include/boost 
-...
-[root@ip-... mariadb-10.6.15]# cmake -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
-                                  -DMYSQL_DATADIR=/usr/local/mysql/data \
-                                  -DMYSQL_UNIX_ADDR=/usr/local/mysql/tmp/mysql.sock \
-                                  -DEXTRA_CHARSETS=gbk,gb2312,utf8,ascii \
-                                  -DENABLED_LOCAL_INFILE=ON \
-                                  -DWITH_INNOBASE_STORAGE_ENGINE=1 \
-                                  -DWITH_FEDERATED_STORAGE_ENGINE=1 \
-                                  -DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
-                                  -DWITHOUT_EXAMPLE_STORAGE_ENGINE=1 \
-                                  -DWITH_FAST_MUTEXES=1 \
-                                  -DWITH_ZLIB=bundled \
-                                  -DENABLED_LOCAL_INFILE=1 \
-                                  -DWITH_EMBEDDED_SERVER=1 \
-                                  -DWITH_DEBUG=0 \
-                                  -DBOOST_ROOT=/usr/include
-[root@ip-... mariadb-10.6.15]# make && make install
+[root@ip-... src]# wget https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.34.tar.gz
+[root@ip-... src]# tar xf mysql-8.0.34.tar.gz
+[root@ip-... src]# cd mysql-8.0.34
+[root@ip-... mysql-8.0.34]# dnf install java-11-amazon-corretto-devel
+[root@ip-... mysql-8.0.34]# mkdir build
+[root@ip-... mysql-8.0.34]# cd build
+[root@ip-... build]# cmake ../ -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
+-DMYSQL_DATADIR=/usr/local/mysql/data \
+-DMYSQL_UNIX_ADDR=/usr/local/mysql/tmp/mysql.sock \
+-DEXTRA_CHARSETS=gbk,gb2312,utf8,ascii \
+-DENABLED_LOCAL_INFILE=ON \
+-DWITH_INNOBASE_STORAGE_ENGINE=1 \
+-DWITH_FEDERATED_STORAGE_ENGINE=1 \
+-DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
+-DWITHOUT_EXAMPLE_STORAGE_ENGINE=1 \
+-DWITH_FAST_MUTEXES=1 \
+-DWITH_ZLIB=bundled \
+-DENABLED_LOCAL_INFILE=1 \
+-DWITH_EMBEDDED_SERVER=1 \
+-DWITH_DEBUG=0 \
+-DDOWNLOAD_BOOST=1 \
+-DWITH_BOOST=/usr/local/src/boost
+[root@ip-... build]# make && make install
+```
+3. 设置环境变量
+```
+[root@ip-... mariadb-10.6.15]# ln -s /usr/local/mysql/scripts/mysql_install_db /usr/local/mysql/bin/
+[root@ip-... mariadb-10.6.15]# echo 'export PATH="/usr/local/mysql/bin:$PATH"' >>/etc/profile
+[root@ip-... mariadb-10.6.15]# tail -1 /etc/profile
+export PATH="/usr/local/mysql/bin:$PATH"
+[root@ip-... mariadb-10.6.15]# export PATH="/usr/local/mysql/bin:$PATH"
+[root@ip-... mariadb-10.6.15]# mysql -V
+mysql  Ver 15.1 Distrib 10.6.15-MariaDB, for Linux (x86_64) using  EditLine wrapper
+```
+4. 创建mysql用户
+```
+[root@ip-... mariadb-10.6.15]# groupadd -g 8000 mysql
+[root@ip-... mariadb-10.6.15]# useradd -u 8000 -g 8000 mysql
+[root@ip-... mariadb-10.6.15]# id mysql
+uid=8000(mysql) gid=8000(mysql) groups=8000(mysql)
+```
+5.创建数据库目录
+```
+[root@ip-... mariadb-10.6.15]# mkdir -p /data/dbdata/mysql_3306/{binlogs,innodb_data,innodb_logs,logs,mydata,relaylogs,socket,tmp}
+[root@ip-... mariadb-10.6.15]# tree /data/dbdata/mysql_3306/
+/data/dbdata/mysql_3306/
+├── binlogs
+├── innodb_data
+├── innodb_logs
+├── logs
+├── mydata
+├── relaylogs
+├── socket
+└── tmp
+
+8 directories, 0 files
+[root@ip-... mariadb-10.6.15]# chown -R mysql.mysql /data/dbdata/mysql_3306/
+```
+6. Configure MySQL to accept remote connections
+```
 ```
 
 ### Prerequisites
