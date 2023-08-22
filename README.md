@@ -163,17 +163,17 @@ EOF
 ### Enable HTTPS and systemctl
 1. Enable TLS on the server
 ```
-yum install openssl mod_ssl
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/pki/tls/private/localhost.key -out
-        \ /etc/pki/tls/certs/localhost.crt
+[root@ip-... ~]# yum install openssl mod_ssl
+[root@ip-... ~]# openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/pki/tls/private/localhost.key -out
+                                  \ /etc/pki/tls/certs/localhost.crt
 ```
 2. 在httpd.conf文件中添加Listen 443和VirtualHost
 ```
-[root@ip-... php-8.2.9]# grep Listen /usr/local/httpd/conf/httpd.conf
+[root@ip-... ~]# grep Listen /usr/local/httpd/conf/httpd.conf
 #Listen 12.34.56.78:80
 Listen 80
 # 在后面添加Listen 443
-[root@ip-... php-8.2.9]# grep Listen /usr/local/httpd/conf/httpd.conf
+[root@ip-... ~]# grep Listen /usr/local/httpd/conf/httpd.conf
 #Listen 12.34.56.78:80
 Listen 80
 Listen 443
@@ -186,30 +186,30 @@ Listen 443
 #     SSLCertificateFile "/path/to/your/certificatefile.crt"
 #     SSLCertificateKeyFile "/path/to/your/privatekeyfile.key"
 # </VirtualHost>
-[root@ip-... php-8.2.9]# apachectl configtest
-[root@ip-... php-8.2.9]# apachectl restart
+[root@ip-... ~]# apachectl configtest
+[root@ip-... ~]# apachectl restart
 ```
 3. 创建httpd.service文件，因为Apache是从tar文件被安装的，所以httpd.service没有自动创建
 ```
 # locate apachectl
-[root@ip-... php-8.2.9]# which apachectl
+[root@ip-... ~]# which apachectl
 /usr/local/httpd/bin/apachectl
 # create /usr/lib/systemd/system/httpd.service
-[root@ip-... php-8.2.9]# echo "[Unit]" > /usr/lib/systemd/system/httpd.service
-[root@ip-... php-8.2.9]# echo "Description=The Apache HTTP Server" >> /usr/lib/systemd/system/httpd.service
-[root@ip-... php-8.2.9]# echo "After=network.target remote-fs.target nss-lookup.target" >> /usr/lib/systemd/system/httpd.service
-[root@ip-... php-8.2.9]# echo "" >> /usr/lib/systemd/system/httpd.service
-[root@ip-... php-8.2.9]# echo "[Service]" >> /usr/lib/systemd/system/httpd.service
-[root@ip-... php-8.2.9]# echo "Type=forking" >> /usr/lib/systemd/system/httpd.service
-[root@ip-... php-8.2.9]# echo "ExecStart=/usr/local/httpd/bin/apachectl start" >> /usr/lib/systemd/system/httpd.service
-[root@ip-... php-8.2.9]# echo "ExecReload=/usr/local/httpd/bin/apachectl graceful" >> /usr/lib/systemd/system/httpd.service
-[root@ip-... php-8.2.9]# echo "ExecStop=/usr/local/httpd/bin/apachectl stop" >> /usr/lib/systemd/system/httpd.service
-[root@ip-... php-8.2.9]# echo "PrivateTmp=true" >> /usr/lib/systemd/system/httpd.service
-[root@ip-... php-8.2.9]# echo "" >> /usr/lib/systemd/system/httpd.service
-[root@ip-... php-8.2.9]# echo "[Install]" >> /usr/lib/systemd/system/httpd.service
-[root@ip-... php-8.2.9]# echo "WantedBy=multi-user.target" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... ~]# echo "[Unit]" > /usr/lib/systemd/system/httpd.service
+[root@ip-... ~]# echo "Description=The Apache HTTP Server" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... ~]# echo "After=network.target remote-fs.target nss-lookup.target" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... ~]# echo "" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... ~]# echo "[Service]" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... ~]# echo "Type=forking" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... ~]# echo "ExecStart=/usr/local/httpd/bin/apachectl start" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... ~]# echo "ExecReload=/usr/local/httpd/bin/apachectl graceful" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... ~]# echo "ExecStop=/usr/local/httpd/bin/apachectl stop" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... ~]# echo "PrivateTmp=true" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... ~]# echo "" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... ~]# echo "[Install]" >> /usr/lib/systemd/system/httpd.service
+[root@ip-... ~]# echo "WantedBy=multi-user.target" >> /usr/lib/systemd/system/httpd.service
 # Override systemd service
-[root@ip-... php-8.2.9]# systemctl edit httpd
+[root@ip-... ~]# systemctl edit httpd
 # add the following to httpd.service.d
 # [Service]
 # ExecStart=
@@ -218,10 +218,10 @@ Listen 443
 # ExecReload=/usr/local/httpd/bin/apachectl graceful
 # ExecStop=
 # ExecStop=/usr/local/httpd/bin/apachectl stop
-[root@ip-... php-8.2.9]# systemctl daemon-reload
-[root@ip-... php-8.2.9]# systemctl restart httpd
+[root@ip-... ~]# systemctl daemon-reload
+[root@ip-... ~]# systemctl restart httpd
 # Ensure systemctl starts on boot
-[root@ip-... php-8.2.9]# systemctl enable httpd
+[root@ip-... ~]# systemctl enable httpd
 ```
 > ***注意：***
 > 1. 确保certificate的名称为localhost, for development use.
