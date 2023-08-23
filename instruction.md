@@ -509,16 +509,24 @@ Find Server Name
 ```
 mysql> SELECT @@hostname;
 ```
+***数据库配置***
 <img width="1545" alt="Screenshot 2023-08-23 at 3 12 38 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/2a098c09-65ce-47c6-8915-f763a69ead95">
-- Setup Administrator Account
+***管理员密码配置***
 admin : admin
 <img width="1448" alt="Screenshot 2023-08-23 at 3 18 05 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/1e008b53-57a1-497c-a7ed-0e618e4dfde6">
+***配置管理选项***
 <img width="1209" alt="Screenshot 2023-08-23 at 3 23 11 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/258f8957-1820-4d68-87db-14dac5cc8589">
+***服务管理选项***
 <img width="1122" alt="Screenshot 2023-08-23 at 3 23 42 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/66f837a2-257c-480b-983f-4f6b01250e9d">
-<img width="1215" alt="Screenshot 2023-08-23 at 3 22 51 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/3a39939b-5f1a-4049-bf2a-0328a11c6ac3">
-<img width="1193" alt="Screenshot 2023-08-23 at 3 24 03 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/7805559a-188b-422d-a2c5-890396d27492">
-<img width="1207" alt="Screenshot 2023-08-23 at 3 24 49 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/d4ac6dc4-38ea-42ca-8f0b-191bb7668667">
+***Tickets管理选项***
+<img width="1296" alt="Screenshot 2023-08-23 at 3 38 05 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/5f554bed-4c63-4c22-87c2-34ffa656b7d8">
+***变更管理选项***
+<img width="1403" alt="Screenshot 2023-08-23 at 3 39 43 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/83ac70fe-5383-4a08-9347-9e67dc9aa9c2">
+***其他ITIL流程***
+<img width="1270" alt="Screenshot 2023-08-23 at 3 49 15 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/4a4e661c-ad8f-4a08-ba74-14d5060e8513">
+***确认配置准备安装***
 <img width="1181" alt="Screenshot 2023-08-23 at 3 25 10 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/989f0190-0d36-4e8b-9020-816f37048b4a">
+<img width="1231" alt="Screenshot 2023-08-23 at 3 49 59 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/fad90579-fb7e-4d98-be92-8686437c706c">
 
 
 ### AWS CloudWatch Monitor(Optional)
