@@ -407,7 +407,29 @@ tcp6       0      0 :::3306                 :::*                    LISTEN      
 tcp6       0      0 :::33060                :::*                    LISTEN      330472/mysqld 
 ```
 > ***注意:*** Starting from MySQL 8.0, 33060 is the port for the MySQL X Protocol, which is a new protocol for client-server communication, different from the classic MySQL protocol used on port 3306. The X Protocol supports more advanced features, including the MySQL Document Store.
-11. Configure MySQL to accept remote connections
+9. Create /etc/systemd/system/httpd.service
+```
+[root@linux-node1 mysql-5.6.37]# cat /etc/systemd/system/httpd.service
+[Unit]
+Description=MySQL Community Server
+After=network.target
+
+[Service]
+User=mysql
+Group=mysql
+ExecStart=/usr/local/mysql/bin/mysqld_safe
+ExecStop=/usr/local/mysql/bin/mysqladmin shutdown
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+[root@linux-node1 mysql-5.6.37]# systemctl daemon-reload
+[root@linux-node1 mysql-5.6.37]# systemctl enable mysql
+[root@linux-node1 mysql-5.6.37]# systemctl start mysql
+```
+10. 创建itop数据库并授权给itop用户
+11. 使用PHP连接mysql测试
+12. Configure MySQL to accept remote connections
 ```
 ```
 
