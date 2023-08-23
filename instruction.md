@@ -505,6 +505,74 @@ pasv_max_port=40100
 2. 部署配置iTop
 - http://aws_public_ip_addr/web/
 
+### AWS CloudWatch Monitor(Optional)
+1. IAM Role for EC2
+- Create a new IAM role with custom policy and attach this role to the instance
+```
+# Open the IAM console.
+# In the navigation pane, click Policies.
+# Click Create policy.
+# Select the JSON tab and create a custom policy.
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "cloudwatch:*",
+            "Resource": "*"
+        },
+        {
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "logs:DescribeLogStreams"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:PutParameter"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+- Install CloudWatch Agent
+```
+[root@ip-... ~]# yum install -y amazon-cloudwatch-agent
+[root@ip-... ~]# /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-config-wizard
+```
+- Configure CloudWatch Agent
+- Start CloudWatch Agent
+```
+[root@ip-... ~]# /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/etc/cloudwatch/config.json -s
+# start on boot
+[root@ip-... ~]# systemctl enable amazon-cloudwatch-agent
+```
+2. Monitor Logs
+```
+# add during configuration of cloudwatch
+/usr/local/httpd/logs/error_log
+/usr/local/httpd/logs/access_log
+...
+```
+3. Set Up Alarms
+- You can set up alarms to notify you when specific thresholds are breached.
+- In the CloudWatch console, navigate to Alarms and choose Create Alarm 
+4. Verify Data in CloudWatch
+- Open the CloudWatch console.
+- In the navigation pane, choose Metrics.
+- Choose the CWAgent namespace to see the metrics that the agent is sending to CloudWatch.
+5. Stop CloudWatch Agent
+```
+[root@ip-... ~]# /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a stop
+[root@ip-... ~]# systemctl disable amazon-cloudwatch-agent
+```
+
 ### Prerequisites
 - Web Server: Apache Httpd :white_check_mark:
 - GraphViz :white_check_mark:
