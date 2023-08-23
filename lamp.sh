@@ -152,3 +152,9 @@ mysqld --defaults-file=/etc/my.cnf \
        --basedir=/usr/local/mysql \
        --datadir=/data/dbdata/mysql_3306/mydata \
        --initialize
+# 创建error.log
+touch /data/dbdata/mysql_3306/logs/error.log
+chown mysql.mysql /data/dbdata/mysql_3306/logs/error.log
+# 启动mysql
+mysqld_safe &
+netstat -nlutp|grep mysql
