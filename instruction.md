@@ -273,25 +273,25 @@ ExecStop=/usr/local/httpd/bin/apachectl stop
 ```
 3. 设置环境变量
 ```
-[root@ip-... mariadb-10.6.15]# ln -s /usr/local/mysql/scripts/mysql_install_db /usr/local/mysql/bin/
-[root@ip-... mariadb-10.6.15]# echo 'export PATH="/usr/local/mysql/bin:$PATH"' >>/etc/profile
-[root@ip-... mariadb-10.6.15]# tail -1 /etc/profile
+[root@ip-... mysql-8.0.34]# ln -s /usr/local/mysql/scripts/mysql_install_db /usr/local/mysql/bin/
+[root@ip-... mysql-8.0.34]# echo 'export PATH="/usr/local/mysql/bin:$PATH"' >>/etc/profile
+[root@ip-... mysql-8.0.34]# tail -1 /etc/profile
 export PATH="/usr/local/mysql/bin:$PATH"
-[root@ip-... mariadb-10.6.15]# export PATH="/usr/local/mysql/bin:$PATH"
-[root@ip-... mariadb-10.6.15]# mysql -V
-mysql  Ver 15.1 Distrib 10.6.15-MariaDB, for Linux (x86_64) using  EditLine wrapper
+[root@ip-... mysql-8.0.34]# export PATH="/usr/local/mysql/bin:$PATH"
+[root@ip-... mysql-8.0.34]# mysql -V
+mysql  Ver 8.0.34 for Linux on x86_64 (Source distribution)
 ```
 4. 创建mysql用户
 ```
-[root@ip-... mariadb-10.6.15]# groupadd -g 8000 mysql
-[root@ip-... mariadb-10.6.15]# useradd -u 8000 -g 8000 mysql
-[root@ip-... mariadb-10.6.15]# id mysql
+[root@ip-... mysql-8.0.34]# groupadd -g 8000 mysql
+[root@ip-... mysql-8.0.34]# useradd -u 8000 -g 8000 mysql
+[root@ip-... mysql-8.0.34]# id mysql
 uid=8000(mysql) gid=8000(mysql) groups=8000(mysql)
 ```
 5.创建数据库目录
 ```
-[root@ip-... mariadb-10.6.15]# mkdir -p /data/dbdata/mysql_3306/{binlogs,innodb_data,innodb_logs,logs,mydata,relaylogs,socket,tmp}
-[root@ip-... mariadb-10.6.15]# tree /data/dbdata/mysql_3306/
+[root@ip-... mysql-8.0.34]# mkdir -p /data/dbdata/mysql_3306/{binlogs,innodb_data,innodb_logs,logs,mydata,relaylogs,socket,tmp}
+[root@ip-... mysql-8.0.34]# tree /data/dbdata/mysql_3306/
 /data/dbdata/mysql_3306/
 ├── binlogs
 ├── innodb_data
@@ -303,13 +303,13 @@ uid=8000(mysql) gid=8000(mysql) groups=8000(mysql)
 └── tmp
 
 8 directories, 0 files
-[root@ip-... mariadb-10.6.15]# chown -R mysql:mysql /data/dbdata/mysql_3306/
-[root@ip-... mariadb-10.6.15]# chmod -R 770 /data/dbdata/mysql_3306/
+[root@ip-... mysql-8.0.34]# chown -R mysql:mysql /data/dbdata/mysql_3306/
+[root@ip-... mysql-8.0.34]# chmod -R 770 /data/dbdata/mysql_3306/
 ```
 6. 配置my.conf文件
 ```
-[root@ip-... mariadb-10.6.15]# cat /etc/my.cnf
-[root@linux-node1 mysql-5.6.37]# cat /etc/my.cnf
+[root@ip-... mysql-8.0.34]# cat /etc/my.cnf
+[root@ip-... mysql-8.0.34]# cat /etc/my.cnf
 [client]
 port = 3306
 socket = /data/dbdata/mysql_3306/socket/mysql.sock
@@ -389,7 +389,7 @@ pid-file=/data/dbdata/mysql_3306/logs/mysqld.pid
 ```
 7. 初始化数据库目录
 ```
-[root@linux-node1 mysql-5.6.37]# mysqld --defaults-file=/etc/my.cnf \
+[root@ip-... mysql-8.0.34]# mysqld --defaults-file=/etc/my.cnf \
                                         --user=mysql \
                                         --basedir=/usr/local/mysql \
                                         --datadir=/data/dbdata/mysql_3306/mydata \
@@ -398,18 +398,18 @@ pid-file=/data/dbdata/mysql_3306/logs/mysqld.pid
 8. 启动MySQL数据库
 ```
 # 创建error.log
-[root@linux-node1 mysql-5.6.37]# touch /data/dbdata/mysql_3306/logs/error.log
-[root@linux-node1 mysql-5.6.37]# chown mysql.mysql /data/dbdata/mysql_3306/logs/error.log
+[root@ip-... mysql-8.0.34]# touch /data/dbdata/mysql_3306/logs/error.log
+[root@ip-... mysql-8.0.34]# chown mysql.mysql /data/dbdata/mysql_3306/logs/error.log
 # 启动mysql
-[root@linux-node1 mysql-5.6.37]# mysqld_safe &
-[root@linux-node1 mysql-5.6.37]# netstat -nlutp|grep mysql
+[root@ip-... mysql-8.0.34]# mysqld_safe &
+[root@ip-... mysql-8.0.34]# netstat -nlutp|grep mysql
 tcp6       0      0 :::3306                 :::*                    LISTEN      330472/mysqld       
 tcp6       0      0 :::33060                :::*                    LISTEN      330472/mysqld 
 ```
 > ***注意:*** Starting from MySQL 8.0, 33060 is the port for the MySQL X Protocol, which is a new protocol for client-server communication, different from the classic MySQL protocol used on port 3306. The X Protocol supports more advanced features, including the MySQL Document Store.
 9. Create /etc/systemd/system/httpd.service
 ```
-[root@linux-node1 mysql-5.6.37]# cat /etc/systemd/system/httpd.service
+[root@ip-... mysql-8.0.34]# cat /etc/systemd/system/httpd.service
 [Unit]
 Description=MySQL Community Server
 After=network.target
@@ -423,13 +423,14 @@ Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
-[root@linux-node1 mysql-5.6.37]# systemctl daemon-reload
-[root@linux-node1 mysql-5.6.37]# systemctl enable mysql
-[root@linux-node1 mysql-5.6.37]# systemctl start mysql
+[root@ip-... mysql-8.0.34]# systemctl daemon-reload
+[root@ip-... mysql-8.0.34]# systemctl enable mysql
+[root@ip-... mysql-8.0.34]# systemctl start mysql
 ```
 10. 创建itop数据库并授权给itop用户
 ```
-[root@linux-node1 mysql-5.6.37]# mysql -u root -p
+[root@ip-... mysql-8.0.34]# mysql -u root -p
+mysql> ALTER USER 'root'@'localhost' IDENTIFIED BY 'eccom@123';
 mysql> create database itop;
 mysql> CREATE USER 'itop'@'%' IDENTIFIED BY 'itop';
 mysql> GRANT ALL ON itop.* TO 'itop'@'%';
@@ -437,8 +438,8 @@ mysql> GRANT ALL ON itop.* TO 'itop'@'%';
 > *** 注意：*** root password is eccom@123 and itop password is itop
 11. 使用PHP连接mysql测试
 ```
-[root@linux-node1 mysql-5.6.37]# yum install -y php-mysqli
-[root@linux-node1 mysql-5.6.37]# cat /usr/local/httpd/htdocs/mysql.php
+[root@ip-... mysql-8.0.34]# yum install -y php-mysqli
+[root@ip-... mysql-8.0.34]# cat /usr/local/httpd/htdocs/mysql.php
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -458,6 +459,33 @@ OK! Connected successfully
 ```
 # optional
 ```
+
+### Set Up an FTP Server
+```
+# allow port 20-21, 40000-40100 on aws
+[root@ip-... ~]# install fpt 
+[root@ip-... ~]# yum install vsftpd
+[root@ip-... ~]# systemctl start vsftpd
+[root@ip-... ~]# systemctl enable vsftpd
+# edit vsftpd.conf
+[root@ip-... ~]# nano /etc/vsftpd/vsftpd.conf
+# make sure the following exists in the file
+listen=yes
+#listen_ipv6=yes
+anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+chroot_local_user=YES
+allow_writeable_chroot=YES
+pasv_enable=YES
+pasv_min_port=40000
+pasv_max_port=40100
+# add fpt password to existing usr
+[root@ip-... ~]# passwd username
+# restart ftp
+[root@ip-... ~]# systemctl restart vsftpd
+```
+> ***注意：*** curl -u user:password -T path-to-your-file ftp://aws-ip//file-dir --ftp-pasv
 
 ### Prerequisites
 - Web Server: Apache Httpd :white_check_mark:
