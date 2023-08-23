@@ -428,9 +428,35 @@ WantedBy=multi-user.target
 [root@linux-node1 mysql-5.6.37]# systemctl start mysql
 ```
 10. 创建itop数据库并授权给itop用户
+```
+[root@linux-node1 mysql-5.6.37]# mysql -u root -p
+mysql> create database itop;
+mysql> CREATE USER 'itop'@'%' IDENTIFIED BY 'itop';
+mysql> GRANT ALL ON itop.* TO 'itop'@'%';
+```
+> *** 注意：*** root password is eccom@123 and itop password is itop
 11. 使用PHP连接mysql测试
+```
+[root@linux-node1 mysql-5.6.37]# yum install -y php-mysqli
+[root@linux-node1 mysql-5.6.37]# cat /usr/local/httpd/htdocs/mysql.php
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+$link = mysqli_connect("127.0.0.1", "itop", "itop");
+
+if (!$link) {
+    echo "FAILED! Connection error: " . mysqli_connect_error();
+} else {
+    echo "OK! Connected successfully";
+}
+?> 
+[root@linux-node1 mysql-5.6.37]# curl http://127.0.0.1/mysql.php
+OK! Connected successfully
+```
 12. Configure MySQL to accept remote connections
 ```
+# optional
 ```
 
 ### Prerequisites
