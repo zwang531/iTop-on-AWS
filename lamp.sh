@@ -106,7 +106,8 @@ EOF
 
 # 安装MySQL
 cd ~
-yum install -y make gcc-c++ cmake bison-devel ncurses-devel libaio libaio-devel perl-Data-Dumper libtirpc libtirpc-devel rpcgen
+yum install -y make tree gcc-c++ cmake bison-devel ncurses-devel libaio libaio-devel perl-Data-Dumper \
+libtirpc libtirpc-devel rpcgen
 yum groupinstall -y "Development Tools"
 cd /usr/local/src/
 wget https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.34.tar.gz
@@ -142,8 +143,12 @@ mysql -V
 groupadd -g 8000 mysql
 useradd -u 8000 -g 8000 mysql
 # 创建数据库目录
-mkdir -p /data/dbdata/mysql_3306/{binlogs,innodb_data,innodb_logs,logs,mydata,relaylogs,socket,tmp}
+mkdir -p /data/dbdata/mysql_3306/{binlogs,innodb_data,innodb_logs,logs,relaylogs,socket,tmp}
 chown -R mysql.mysql /data/dbdata/mysql_3306/
 # 配置my.conf文件 /etc/my.conf
 # 初始化数据库目录
-mysql_install_db --defaults-file=/etc/my.cnf --user=mysql --basedir=/usr/local/mysql --datadir=/data/dbdata/mysql_3306/mydata
+mysqld --defaults-file=/etc/my.cnf \
+       --user=mysql \
+       --basedir=/usr/local/mysql \
+       --datadir=/data/dbdata/mysql_3306/mydata \
+       --initialize
