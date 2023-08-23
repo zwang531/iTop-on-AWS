@@ -36,7 +36,7 @@ root@ip-... httpd-2.4.57]# echo 'export PATH="/usr/local/httpd/bin:$PATH"' >>/et
 root@ip-... httpd-2.4.57]# export PATH="/usr/local/httpd/bin:$PATH"
 # 检测httpd安装版本
 root@ip-... httpd-2.4.57]# apachectl -v
-Server version: Apache/2.4.37 (Unix)
+Server version: Apache/2.4.57 (Unix)
 Server built:   Dec 23 2018 05:19:59
 ```
 4. 配置Apache并启动
@@ -81,10 +81,8 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 ```
 [root@ip-... ~]# yum install -y libpng-devel libjpeg-devel bison bison-devel zlib-devel \
                      openssl-devel libxml2-devel libcurl-devel bzip2-devel readline-devel libedit-devel \
-                     sqlite-devel jemalloc jemalloc-devel openldap-devel oniguruma-devel libtool
+                     sqlite-devel jemalloc jemalloc-devel openldap-devel oniguruma-devel libtool gd gd-devel
 ```
-> ***注意：***
-> libmcrypt-devel mcrypt mhash-devel are deprecated, so ignored
 2. 下载PHP并解压安装
 ```
 [root@ip-... ~]# cd /usr/local/src/
@@ -95,31 +93,29 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 [root@ip-... php-8.1.22]# ./configure --prefix=/usr/local/php \
 --with-config-file-path=/usr/local/php/etc \
 --with-apxs2=/usr/local/httpd/bin/apxs \
---enable-inline-optimization \
 --disable-debug \
 --disable-rpath \
 --enable-shared \
 --enable-opcache \
 --enable-fpm \
+--enable-gd \
 --with-fpm-user=www \
 --with-fpm-group=www \
---with-mysql \
 --with-mysqli \
 --with-openssl \
+--with-zip \
 --with-zlib \
 --with-curl \
---with-gd \
---with-jpeg-dir \
---with-png-dir \
 --with-iconv \
 --with-ldap \
---with-mcrypt \
+--with-ldap-sasl \
 --with-bz2 \
 --with-readline \
---with-libxml-dir \
 --with-gettext \
 --with-mhash \
---enable-zip \
+--with-zlib \
+--with-jpeg \
+--with-freetype \
 --enable-soap \
 --enable-mbstring \
 --enable-bcmath \
@@ -136,8 +132,6 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 [root@ip-... php-8.1.22]# cp php.ini-production /usr/local/php/etc/php.ini
 [root@ip-... php-8.1.22]# cp /usr/local/php/etc/php-fpm.conf{.default,}
 ```
-> ***注意:***
-> configure: WARNING: unrecognized options: --enable-inline-optimization, --with-mysql, --with-gd, --with-jpeg-dir, --with-png-dir, --with-mcrypt, --with-libxml-dir, --enable-zip
 
 3. 修改Apache配置文件并重启Apache
 ```
@@ -151,7 +145,10 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
     AddType application/x-httpd-php .php
 # 重启Apache
 [root@ip-... php-8.1.22]# apachectl stop
-[root@ip-... php-8.1.22]# apachectl
+[root@ip-... php-8.1.22]# apachectl start
+# 设置环境变量
+[root@ip-... php-8.1.22]# echo 'export PATH=$PATH:/usr/local/php/bin/' >> ~/.bashrc
+[root@ip-... php-8.1.22]# source ~/.bashrc
 ```
 4. index.php文件访问测试
 ```
@@ -162,7 +159,7 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 EOF
 ```
 
-### Enable HTTPS and systemctl
+### Enable HTTPS and systemctl (Optional)
 1. Enable TLS on the server
 ```
 [root@ip-... ~]# yum install openssl mod_ssl
@@ -487,10 +484,30 @@ pasv_max_port=40100
 ```
 > ***注意：*** curl -u user:password -T path-to-your-file ftp://aws-ip//file-dir --ftp-pasv
 
+### 部署配置iTop
+1. 用ftp将iTop-3.1.0-2-11973.zip上传到服务器上
+```
+[root@ip-... ~]# cd /usr/local/httpd/htdocs/
+[root@ip-... htdocs]# unzip iTop-3.1.0-2-11973.zip 
+[root@ip-... htdocs]# chown www.www -R .
+# optional
+[root@ip-... htdocs]# find / -name .htaccess 2>/dev/null
+/usr/local/httpd/htdocs/web/conf/.htaccess
+...
+[root@ip-... htdocs]# nano /usr/local/httpd/conf/httpd.conf
+<Directory "/usr/local/httpd/htdocs/web">
+    AllowOverride All
+</Directory>
+```
+2. 部署配置iTop
+- http://aws_public_ip_addr/web/
+
 ### Prerequisites
 - Web Server: Apache Httpd :white_check_mark:
-- GraphViz 
+- GraphViz :white_check_mark:
 - DB Server: MySQL :white_check_mark:
 ```
-[root@ip-... ~]# yum install graphviz
+# aws linux 2023 has pre-installed package graphviz-2.44.0-25.amzn2023.0.6.x86_64
+# if not
+[root@ip-... ~]# yum install -y graphviz
 ```
