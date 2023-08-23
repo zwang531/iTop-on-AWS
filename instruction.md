@@ -132,6 +132,9 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 [root@ip-... php-8.1.22]# cp php.ini-production /usr/local/php/etc/php.ini
 [root@ip-... php-8.1.22]# cp /usr/local/php/etc/php-fpm.conf{.default,}
 ```
+> ***注意：*** Check if gd.so is created under /usr/local/php/lib/php/extensions/no-debug-non-zts-20210902/
+> gd.so is necessary to show pages correctly.
+> Last way, try install php-8.2 first and find gd.so then cp it to the corresponding folder.
 
 3. 修改Apache配置文件并重启Apache
 ```
