@@ -395,7 +395,18 @@ pid-file=/data/dbdata/mysql_3306/logs/mysqld.pid
                                         --datadir=/data/dbdata/mysql_3306/mydata \
                                         --initialize
 ```
-...
+8. 启动MySQL数据库
+```
+# 创建error.log
+[root@linux-node1 mysql-5.6.37]# touch /data/dbdata/mysql_3306/logs/error.log
+[root@linux-node1 mysql-5.6.37]# chown mysql.mysql /data/dbdata/mysql_3306/logs/error.log
+# 启动mysql
+[root@linux-node1 mysql-5.6.37]# mysqld_safe &
+[root@linux-node1 mysql-5.6.37]# netstat -nlutp|grep mysql
+tcp6       0      0 :::3306                 :::*                    LISTEN      330472/mysqld       
+tcp6       0      0 :::33060                :::*                    LISTEN      330472/mysqld 
+```
+> ***注意:*** Starting from MySQL 8.0, 33060 is the port for the MySQL X Protocol, which is a new protocol for client-server communication, different from the classic MySQL protocol used on port 3306. The X Protocol supports more advanced features, including the MySQL Document Store.
 11. Configure MySQL to accept remote connections
 ```
 ```
