@@ -103,3 +103,47 @@ cat >/usr/local/httpd/htdocs/index.php<<EOF
 phpinfo();
 ?>
 EOF
+
+# 安装MySQL
+cd ~
+yum install -y make gcc-c++ cmake bison-devel ncurses-devel libaio libaio-devel perl-Data-Dumper libtirpc libtirpc-devel rpcgen
+yum groupinstall -y "Development Tools"
+cd /usr/local/src/
+wget https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.34.tar.gz
+tar xf mysql-8.0.34.tar.gz
+cd mysql-8.0.34
+dnf install java-11-amazon-corretto-devel
+mkdir build
+cd build
+cmake ../ -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
+-DMYSQL_DATADIR=/usr/local/mysql/data \
+-DMYSQL_UNIX_ADDR=/usr/local/mysql/tmp/mysql.sock \
+-DEXTRA_CHARSETS=gbk,gb2312,utf8,ascii \
+-DENABLED_LOCAL_INFILE=ON \
+-DWITH_INNOBASE_STORAGE_ENGINE=1 \
+-DWITH_FEDERATED_STORAGE_ENGINE=1 \
+-DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
+-DWITHOUT_EXAMPLE_STORAGE_ENGINE=1 \
+-DWITH_FAST_MUTEXES=1 \
+-DWITH_ZLIB=bundled \
+-DENABLED_LOCAL_INFILE=1 \
+-DWITH_EMBEDDED_SERVER=1 \
+-DWITH_DEBUG=0 \
+-DDOWNLOAD_BOOST=1 \
+-DWITH_BOOST=/usr/local/src/boost
+make && make install
+# 设置环境变量
+ln -s /usr/local/mysql/scripts/mysql_install_db /usr/local/mysql/bin/
+echo 'export PATH="/usr/local/mysql/bin:$PATH"' >>/etc/profile
+export PATH="/usr/local/mysql/bin:$PATH"
+mysql -V
+# mysql  Ver 8.0.34 for Linux on x86_64 (Source distribution)
+# 创建mysql用户
+groupadd -g 8000 mysql
+useradd -u 8000 -g 8000 mysql
+# 创建数据库目录
+mkdir -p /data/dbdata/mysql_3306/{binlogs,innodb_data,innodb_logs,logs,mydata,relaylogs,socket,tmp}
+chown -R mysql.mysql /data/dbdata/mysql_3306/
+# 配置my.conf文件 /etc/my.conf
+# 初始化数据库目录
+mysql_install_db --defaults-file=/etc/my.cnf --user=mysql --basedir=/usr/local/mysql --datadir=/data/dbdata/mysql_3306/mydata
