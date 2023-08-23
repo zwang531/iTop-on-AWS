@@ -37,52 +37,51 @@ curl 127.0.0.1
 
 # 安装PHP
 yum install -y  libpng-devel libjpeg-devel bison bison-devel zlib-devel \
-				openssl-devel libxml2-devel libcurl-devel bzip2-devel readline-devel libedit-devel \
-				sqlite-devel jemalloc jemalloc-devel openldap-devel oniguruma-devel
+		openssl-devel libxml2-devel libcurl-devel bzip2-devel readline-devel libedit-devel \
+		sqlite-devel jemalloc jemalloc-devel openldap-devel oniguruma-devel libtool gd gd-devel
 cd /usr/local/src/
 wget https://www.php.net/distributions/php-8.1.22.tar.gz
 tar xf php-8.1.22.tar.gz
 cd php-8.1.22/
 cp -frp /usr/lib64/libldap* /usr/lib/
 ./configure --prefix=/usr/local/php \
-			--with-config-file-path=/usr/local/php/etc \
-			--with-apxs2=/usr/local/httpd/bin/apxs \
-			--enable-inline-optimization \
-			--disable-debug \
-			--disable-rpath \
-			--enable-shared \
-			--enable-opcache \
-			--enable-fpm \
-			--with-fpm-user=www \
-			--with-fpm-group=www \
-			--with-mysql \
-			--with-mysqli \
-			--with-openssl \
-			--with-zlib \
-			--with-curl \
-			--with-gd \
-			--with-jpeg-dir \
-			--with-png-dir \
-			--with-iconv \
-			--with-ldap \
-			--with-mcrypt \
-			--with-bz2 \
-			--with-readline \
-			--with-libxml-dir \
-			--with-gettext \
-			--with-mhash \
-			--enable-zip \
-			--enable-soap \
-			--enable-mbstring \
-			--enable-bcmath \
-			--enable-pcntl \
-			--enable-shmop \
-			--enable-sysvmsg \
-			--enable-sysvsem \
-			--enable-sysvshm \
-			--enable-sockets
+--with-config-file-path=/usr/local/php/etc \
+--with-apxs2=/usr/local/httpd/bin/apxs \
+--disable-debug \
+--disable-rpath \
+--enable-shared \
+--enable-opcache \
+--enable-fpm \
+--enable-gd \
+--with-fpm-user=www \
+--with-fpm-group=www \
+--with-mysqli \
+--with-openssl \
+--with-zip \
+--with-zlib \
+--with-curl \
+--with-iconv \
+--with-ldap \
+--with-ldap-sasl \
+--with-bz2 \
+--with-readline \
+--with-gettext \
+--with-mhash \
+--with-zlib \
+--with-jpeg \
+--with-freetype \
+--enable-soap \
+--enable-mbstring \
+--enable-bcmath \
+--enable-pcntl \
+--enable-shmop \
+--enable-sysvmsg \
+--enable-sysvsem \
+--enable-sysvshm \
+--enable-sockets
 sed -ri 's#(^EXTRA_LIBS =.*)#\1 -llber#gp' Makefile
 make && make install
+libtool --finish /usr/local/src/php-8.1.22/libs
 # 拷贝配置文件
 cp php.ini-production /usr/local/php/etc/php.ini
 cp /usr/local/php/etc/php-fpm.conf{.default,}
