@@ -4,7 +4,7 @@ Configure LAMP on EC2 and install iTop ITSM
 ### 安装环境
 在Amazon Linux环境下部署LAMP，相关软件版本如下：
 - httpd-2.4.57
-- php-8.2.9
+- php-8.2.9 ***(trouble install gd.so < php 8.2 for aws linux 2023)***
 - mysql-8.0.34
   
 
