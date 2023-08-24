@@ -88,7 +88,9 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 [root@ip-... ~]# cd /usr/local/src/
 [root@ip-... src]# wget https://www.php.net/distributions/php-8.1.22.tar.gz
 [root@ip-... src]# tar xf php-8.1.22.tar.gz
-[root@ip-... src]# cd php-8.1.22/
+[root@ip-... src]# cd php-8.1.22/etc/gd
+[root@ip-... src]# phpize
+[root@ip-... src]# cd /usr/local/src/php-8.1.22/
 [root@ip-... php-8.1.22]# cp -frp /usr/lib64/libldap* /usr/lib/
 [root@ip-... php-8.1.22]# ./configure --prefix=/usr/local/php \
 --with-config-file-path=/usr/local/php/etc \
