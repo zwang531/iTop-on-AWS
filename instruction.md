@@ -4,7 +4,7 @@ Configure LAMP on EC2 and install iTop ITSM
 ### 安装环境
 在Amazon Linux环境下部署LAMP，相关软件版本如下：
 - httpd-2.4.57
-- php-8.1.22
+- php-8.2.9
 - mysql-8.0.34
   
 
@@ -86,13 +86,13 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 2. 下载PHP并解压安装
 ```
 [root@ip-... ~]# cd /usr/local/src/
-[root@ip-... src]# wget https://www.php.net/distributions/php-8.1.22.tar.gz
-[root@ip-... src]# tar xf php-8.1.22.tar.gz
-[root@ip-... src]# cd php-8.1.22/etc/gd
+[root@ip-... src]# wget https://www.php.net/distributions/php-8.2.9.tar.gz
+[root@ip-... src]# tar xf php-8.8.2.9.tar.gz
+[root@ip-... src]# cd php-8.8.2.9/etc/gd
 [root@ip-... src]# phpize
 [root@ip-... src]# cd /usr/local/src/php-8.1.22/
-[root@ip-... php-8.1.22]# cp -frp /usr/lib64/libldap* /usr/lib/
-[root@ip-... php-8.1.22]# ./configure --prefix=/usr/local/php \
+[root@ip-... php-8.2.9]# cp -frp /usr/lib64/libldap* /usr/lib/
+[root@ip-... php-8.2.9]# ./configure --prefix=/usr/local/php \
 --with-config-file-path=/usr/local/php/etc \
 --with-apxs2=/usr/local/httpd/bin/apxs \
 --disable-debug \
@@ -127,12 +127,12 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 --enable-sysvsem \
 --enable-sysvshm \
 --enable-sockets
-[root@ip-... php-8.1.22]# sed -ri 's#(^EXTRA_LIBS =.*)#\1 -llber#gp' Makefile
-[root@ip-... php-8.1.22]# make && make install
-[root@ip-... php-8.1.22]# libtool --finish /usr/local/src/php-8.1.22/libs
+[root@ip-... php-8.2.9]# sed -ri 's#(^EXTRA_LIBS =.*)#\1 -llber#gp' Makefile
+[root@ip-... php-8.2.9]# make && make install
+[root@ip-... php-8.2.9]# libtool --finish /usr/local/src/php-8.1.22/libs
 # 拷贝配置文件
-[root@ip-... php-8.1.22]# cp php.ini-production /usr/local/php/etc/php.ini
-[root@ip-... php-8.1.22]# cp /usr/local/php/etc/php-fpm.conf{.default,}
+[root@ip-... php-8.2.9]# cp php.ini-production /usr/local/php/etc/php.ini
+[root@ip-... php-8.2.9]# cp /usr/local/php/etc/php-fpm.conf{.default,}
 ```
 > ***注意：*** Check if gd.so is created under /usr/local/php/lib/php/extensions/no-debug-non-zts-20210902/
 > Update php.ini: extension=gd
@@ -140,23 +140,23 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 3. 修改Apache配置文件并重启Apache
 ```
 # 在DirectoryIndex后面添加：index.php
-[root@ip-... php-8.1.22]# grep "DirectoryIndex"  /usr/local/httpd/conf/httpd.conf
+[root@ip-... php-8.2.9]# grep "DirectoryIndex"  /usr/local/httpd/conf/httpd.conf
 # DirectoryIndex: sets the file that Apache will serve if a directory
    DirectoryIndex index.html index.php
 # 在AddType application/x-gzip .gz .tgz后面添加：AddType application/x-httpd-php .php
-[root@ip-... php-8.1.22]# grep -A 2 'AddType application/x-gzip .gz' /usr/local/httpd/conf/httpd.conf
+[root@ip-... php-8.2.9]# grep -A 2 'AddType application/x-gzip .gz' /usr/local/httpd/conf/httpd.conf
     AddType application/x-gzip .gz .tgz
     AddType application/x-httpd-php .php
 # 重启Apache
-[root@ip-... php-8.1.22]# apachectl stop
-[root@ip-... php-8.1.22]# apachectl start
+[root@ip-... php-8.2.9]# apachectl stop
+[root@ip-... php-8.2.9]# apachectl start
 # 设置环境变量
-[root@ip-... php-8.1.22]# echo 'export PATH=$PATH:/usr/local/php/bin/' >> ~/.bashrc
-[root@ip-... php-8.1.22]# source ~/.bashrc
+[root@ip-... php-8.2.9]# echo 'export PATH=$PATH:/usr/local/php/bin/' >> ~/.bashrc
+[root@ip-... php-8.2.9]# source ~/.bashrc
 ```
 4. index.php文件访问测试
 ```
-[root@ip-... php-8.1.22]# cat >/usr/local/httpd/htdocs/index.php<<EOF
+[root@ip-... php-8.2.9]# cat >/usr/local/httpd/htdocs/index.php<<EOF
 <?php
    phpinfo();
 ?>
@@ -504,31 +504,7 @@ pasv_max_port=40100
 </Directory>
 ```
 2. 部署配置iTop
-- Visit http://aws_public_ip_addr/web/setup/wizard.php
-- Database configuration
-Find Server Name
-```
-mysql> SELECT @@hostname;
-```
-***数据库配置***
-<img width="1545" alt="Screenshot 2023-08-23 at 3 12 38 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/2a098c09-65ce-47c6-8915-f763a69ead95">
-***管理员密码配置***
-admin : admin
-<img width="1448" alt="Screenshot 2023-08-23 at 3 18 05 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/1e008b53-57a1-497c-a7ed-0e618e4dfde6">
-***配置管理选项***
-<img width="1209" alt="Screenshot 2023-08-23 at 3 23 11 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/258f8957-1820-4d68-87db-14dac5cc8589">
-***服务管理选项***
-<img width="1122" alt="Screenshot 2023-08-23 at 3 23 42 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/66f837a2-257c-480b-983f-4f6b01250e9d">
-***Tickets管理选项***
-<img width="1296" alt="Screenshot 2023-08-23 at 3 38 05 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/5f554bed-4c63-4c22-87c2-34ffa656b7d8">
-***变更管理选项***
-<img width="1403" alt="Screenshot 2023-08-23 at 3 39 43 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/83ac70fe-5383-4a08-9347-9e67dc9aa9c2">
-***其他ITIL流程***
-<img width="1270" alt="Screenshot 2023-08-23 at 3 49 15 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/4a4e661c-ad8f-4a08-ba74-14d5060e8513">
-***确认配置准备安装***
-<img width="1181" alt="Screenshot 2023-08-23 at 3 25 10 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/989f0190-0d36-4e8b-9020-816f37048b4a">
-<img width="1231" alt="Screenshot 2023-08-23 at 3 49 59 PM" src="https://github.com/zwang531/iTop-on-AWS/assets/9245952/fad90579-fb7e-4d98-be92-8686437c706c">
-
+Visit http://aws_public_ip_addr/web/setup/wizard.php
 
 ### AWS CloudWatch Monitor(Optional)
 1. IAM Role for EC2
